@@ -136,10 +136,29 @@ do_sign_kernel_habv4() {
     # u-boot> hab_auth_img ${IMG_ADDR} $filesize ${IMG_SIZE}
 }
 
-# Empty function for when hab override not defined
+do_sign_kernel32_habv4() {
+    SOC="$1"
+
+    # Copy images to linux64/bin directory of CST
+    cp ${B}/${KERNEL_OUTPUT_DIR}/${KERNEL_IMAGETYPE} ${CST_BIN_DIR}/
+
+    # Sign image
+	cd ${CST_BIN_DIR}
+    SOC=${SOC} ./var-som_sign_image.sh ${KERNEL_IMAGETYPE}
+
+    # Copy back to KERNEL_OUTPUT_DIR
+    cp ${CST_BIN_DIR}/${KERNEL_IMAGETYPE}-ivt_signed ${B}/${KERNEL_OUTPUT_DIR}/${KERNEL_IMAGETYPE}
+}
+
 do_sign_kernel() {
     if [ -n "${HAB_VER}" ]; then
         do_sign_kernel_${HAB_VER}
+    fi
+}
+
+do_sign_kernel:arm:hab() {
+    if [ -n "${UBOOT_HAB_SOC}" ]; then
+        do_sign_kernel32_habv4 "${UBOOT_HAB_SOC}"
     fi
 }
 
